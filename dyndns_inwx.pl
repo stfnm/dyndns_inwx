@@ -138,6 +138,9 @@ sub main
 				print "v6";
 			}
 		}
+
+		# We're done so we finally logout
+		inwx_logout();
 	}
 
 	exit 0;
