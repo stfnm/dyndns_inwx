@@ -100,6 +100,7 @@ sub inwx_nameserverUpdateRecord($$)
 sub main
 {
 	my $query = new CGI;
+	print $query->header(-charset => 'UTF-8');
 
 	# Get token URL parameter
 	my $token = $query->param('token');
