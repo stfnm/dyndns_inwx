@@ -21,6 +21,7 @@
 use strict;
 use warnings;
 use CGI;
+use MIME::Base64;
 use Data::Dumper;
 use DomRobot::Lite;
 
@@ -113,10 +114,20 @@ sub main
 	# Get the rest of the URL parameters
 	my $domain = $query->param('domain'); # fqdn to update record
 	my $domain2 = $query->param('domain2'); # second-level domain name
-	my $username = $query->param('username'); # inwx
-	my $pass = $query->param('pass'); # inwx
+	my $username = $query->param('username'); # inwx user
+	my $username64 = $query->param('username64'); # inwx user (base64 encoded)
+	my $pass = $query->param('pass'); # inwx password
+	my $pass64 = $query->param('pass64'); # inwx password (base64 encoded)
 	my $ip = $query->param('ipaddr');
 	my $ip6 = $query->param('ip6addr');
+
+	# Decode base64 parameters
+	if (!$username && $username64) {
+		$username = decode_base64($username64);
+	}
+	if (!$pass && $pass64) {
+		$pass = decode_base64($pass64);
+	}
 
 	# Login and update records
 	if ($domain && $domain2 && $username && $pass && inwx_login($username, $pass)) {
