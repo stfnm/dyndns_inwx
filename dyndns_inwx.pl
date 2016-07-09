@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# Copyright (C) 2015  stfn <stfnmd@gmail.com>
+# Copyright (C) 2015-2016  stfn <stfnmd@gmail.com>
 # https://github.com/stfnm/dyndns_inwx
 #
 # This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,11 @@ use Data::Dumper;
 use DomRobot::Lite;
 
 ################################################################################
+
+#
+# DomRobot XML-RPC API Documentation:
+# https://www.inwx.de/en/help/apidoc
+#
 
 my $API_URL = 'https://api.domrobot.com/xmlrpc/';
 my $TOKEN = 'use some token';
@@ -61,10 +66,10 @@ sub inwx_logout
 
 sub inwx_nameserverInfo($$$)
 {
-	my ($domain, $domain2, $domain_type) = @_;
+	my ($domain, $subdomain, $domain_type) = @_;
 
 	# Query nameserver info
-	my $response = $CLIENT->call('nameserver.info', { domain => $domain2 });
+	my $response = $CLIENT->call('nameserver.info', { domain => $subdomain });
 
 	# Check if query was successful
 	if ($response->result->{code} == 1000) {
@@ -112,8 +117,8 @@ sub main
 	}
 
 	# Get the rest of the URL parameters
-	my $domain = $query->param('domain'); # fqdn to update record
-	my $domain2 = $query->param('domain2'); # second-level domain name
+	my $domain = $query->param('domain'); # domain name, e.g. example.org
+	my $subdomain = $query->param('subdomain'); # subdomain name to update record, e.g. home.example.org
 	my $username = $query->param('username'); # inwx user
 	my $username64 = $query->param('username64'); # inwx user (base64 encoded)
 	my $pass = $query->param('pass'); # inwx password
@@ -130,12 +135,12 @@ sub main
 	}
 
 	# Login and update records
-	if ($domain && $domain2 && $username && $pass && inwx_login($username, $pass)) {
+	if ($domain && $subdomain && $username && $pass && inwx_login($username, $pass)) {
 		my ($id, $id6);
 
 		# IPv4
 		if ($ip) {
-			$id = inwx_nameserverInfo($domain, $domain2, 'A');
+			$id = inwx_nameserverInfo($domain, $subdomain, 'A');
 			if ($id) {
 				inwx_nameserverUpdateRecord($id, $ip);
 				print "v4";
@@ -144,7 +149,7 @@ sub main
 
 		# IPv6
 		if ($ip6) {
-			$id6 = inwx_nameserverInfo($domain, $domain2, 'AAAA');
+			$id6 = inwx_nameserverInfo($domain, $subdomain, 'AAAA');
 			if ($id6) {
 				inwx_nameserverUpdateRecord($id6, $ip6);
 				print "v6";
